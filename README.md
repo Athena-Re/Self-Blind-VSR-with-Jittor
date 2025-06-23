@@ -370,6 +370,7 @@ python inference.py \
 #### 1. 质量指标对比
 
 -   [chart_psnr_comparison.png](visualization/chart_psnr_comparison.png)：PSNR 指标详细对比
+-   ![示例图片](visualization/chart_psnr_comparison.png)
 -   [chart_ssim_comparison.png](visualization/chart_ssim_comparison.png)：SSIM 指标详细对比
 -   [chart_performance_radar.png](visualization/chart_performance_radar.png)：综合性能雷达图
 
