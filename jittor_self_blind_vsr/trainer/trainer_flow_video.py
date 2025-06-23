@@ -131,31 +131,31 @@ class Trainer_Flow_Video(Trainer):
             loss = self.loss(recons_down, input_center)
 
             cycle_loss = self.l1_loss(input_center_cycle, input_center)
-            cycle_loss_sum = cycle_loss_sum + cycle_loss.item()
+            cycle_loss_sum = cycle_loss_sum + cycle_loss.data[0]
             loss = loss + cycle_loss
 
             w1, w2, w3 = 0.5, 0.04, 1
 
             kloss_boundaries = self.kernel_loss_boundaries(est_kernel)
-            kloss_boundaries_sum = kloss_boundaries_sum + kloss_boundaries.item()
+            kloss_boundaries_sum = kloss_boundaries_sum + kloss_boundaries.data[0]
             loss = loss + w1 * kloss_boundaries
 
             kloss_sparse = self.kernel_loss_sparse(est_kernel)
-            kloss_sparse_sum = kloss_sparse_sum + kloss_sparse.item()
+            kloss_sparse_sum = kloss_sparse_sum + kloss_sparse.data[0]
             loss = loss + w2 * kloss_sparse
 
             kloss_center = self.kernel_loss_center(est_kernel)
-            kloss_center_sum = kloss_center_sum + kloss_center.item()
+            kloss_center_sum = kloss_center_sum + kloss_center.data[0]
             loss = loss + w3 * kloss_center
 
             if mid_loss:  # mid loss is the loss during the model
                 loss = loss + self.args.mid_loss_weight * mid_loss
-                mid_loss_sum = mid_loss_sum + mid_loss.item()
+                mid_loss_sum = mid_loss_sum + mid_loss.data[0]
             
             self.optimizer.backward(loss)
             self.optimizer.step()
 
-            self.ckp.report_log(loss.item())
+            self.ckp.report_log(loss.data[0])
             
             # 计算PSNR用于显示
             with jt.no_grad():
@@ -170,8 +170,8 @@ class Trainer_Flow_Video(Trainer):
             # 更新进度条信息 - 只显示关键指标
             postfix_dict = {
                 'PSNR': f'{train_psnr:.2f}',
-                'loss': f'{loss.item():.3f}',
-                'cycle': f'{cycle_loss.item():.3f}'
+                'loss': f'{loss.data[0]:.3f}',
+                'cycle': f'{cycle_loss.data[0]:.3f}'
             }
             train_pbar.set_postfix(**postfix_dict)
             train_pbar.update(1)

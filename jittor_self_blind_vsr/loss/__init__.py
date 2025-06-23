@@ -62,14 +62,14 @@ class Loss(nn.Module):
                 effective_loss = l['weight'] * loss
                 losses.append(effective_loss)
                 if len(self.log) > 0:
-                    self.log[-1, i] += effective_loss.item()
+                    self.log[-1, i] += effective_loss.data[0]
             elif l['type'] == 'DIS':
                 if len(self.log) > 0:
                     self.log[-1, i] += self.loss[i - 1]['function'].loss
 
         loss_sum = sum(losses)
         if len(self.loss) > 1 and len(self.log) > 0:
-            self.log[-1, -1] += loss_sum.item()
+            self.log[-1, -1] += loss_sum.data[0]
 
         return loss_sum
 

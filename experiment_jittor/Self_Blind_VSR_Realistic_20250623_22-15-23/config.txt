@@ -1,4 +1,4 @@
-2025-06-23-21:58:45
+2025-06-23-22:15:23
 
 template: Self_Blind_VSR_Realistic
 n_threads: 2
@@ -22,7 +22,7 @@ model: PWC_Recons
 pre_train: .
 test_every: 1000
 epochs: 500
-batch_size: 8
+batch_size: 2
 test_only: False
 loss: 1*L1
 lr: 0.0001
@@ -35,7 +35,7 @@ weight_decay: 0
 mid_loss_weight: 1.0
 experiment_dir: ../experiment_jittor/
 pretrain_models_dir: ../pretrain_models/
-save: Self_Blind_VSR_Realistic
+save: Self_Blind_VSR_Realistic_20250623_22-15-23
 save_middle_models: True
 load: .
 resume: False

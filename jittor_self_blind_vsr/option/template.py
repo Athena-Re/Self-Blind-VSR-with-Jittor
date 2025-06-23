@@ -22,7 +22,7 @@ def set_template(args):
         args.save_middle_models = True
         args.save_images = False
         args.epochs = 500
-        args.batch_size = 8
+        args.batch_size = 1
         # args.resume = True
         # args.load = args.save
         # args.test_only = True
@@ -49,7 +49,7 @@ def set_template(args):
         args.save_middle_models = True
         args.save_images = False
         args.epochs = 500
-        args.batch_size = 8
+        args.batch_size = 1
         # args.resume = True
         # args.load = args.save
         # args.test_only = True

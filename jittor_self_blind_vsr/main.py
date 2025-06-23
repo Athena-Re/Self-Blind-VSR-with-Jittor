@@ -1,4 +1,5 @@
 # python main.py --template Self_Blind_VSR_Realistic
+# python -c "import jittor as jt; jt.clean()"
 import os
 import jittor as jt
 import jittor.nn as nn

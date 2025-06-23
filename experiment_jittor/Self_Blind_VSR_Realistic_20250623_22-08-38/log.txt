@@ -418,3 +418,4 @@ PWC_Recons(
         )
     )
 )
+Epoch   0 with Lr 1.00e-4
