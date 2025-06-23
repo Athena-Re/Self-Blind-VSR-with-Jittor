@@ -1,7 +1,22 @@
 # python main.py --template Self_Blind_VSR_Realistic
+import os
 import torch
 import multiprocessing
 import warnings
+
+# 设置临时目录环境变量（确保在导入其他模块前执行）
+os.environ['TEMP'] = 'D:\\TEMP' 
+os.environ['TMP'] = 'D:\\TEMP'
+print(f"⚠️ 临时目录已重设为: {os.environ['TEMP']}")
+
+# 尝试使用CUDA实现（已修改临时目录到D盘，避免中文路径问题）
+os.environ['FORCE_CORRELATION_PYTORCH'] = 'FALSE'
+print("✅ 将尝试使用CUDA相关性实现（如编译失败会自动回退到PyTorch实现）")
+
+# 创建临时目录（如果不存在）
+if not os.path.exists('D:\\TEMP'):
+    os.makedirs('D:\\TEMP')
+    print("✅ 临时目录已创建")
 
 import data
 import model

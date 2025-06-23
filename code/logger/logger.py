@@ -70,20 +70,24 @@ class Logger:
 
         if args.load == '.':
             if args.save == '.':
-                args.save = datetime.datetime.now().strftime('%Y%m%d_%H-%M')
+                args.save = datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
             else:
                 # 为指定的save名称添加时间戳
-                args.save = args.save + '_' + datetime.datetime.now().strftime('%Y%m%d_%H-%M')
+                args.save = args.save + '_' + datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
             # 如果目录已存在，直接生成新的唯一目录名
             original_dir = args.experiment_dir + args.save
             if os.path.exists(original_dir) and not args.test_only:
                 # 生成唯一的新目录名
-                counter = 1
-                while True:
-                    self.dir = f"{original_dir}_{counter:02d}"
-                    if not os.path.exists(self.dir):
-                        break
-                    counter += 1
+                # 使用秒级时间戳确保唯一性
+                timestamp = datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
+                self.dir = f"{original_dir}_{timestamp}"
+                if os.path.exists(self.dir):
+                    counter = 1
+                    while True:
+                        self.dir = f"{original_dir}_{timestamp}_{counter:02d}"
+                        if not os.path.exists(self.dir):
+                            break
+                        counter += 1
                 print(f"🔄 目录已存在，创建新目录: {self.dir}")
             else:
                 self.dir = original_dir
