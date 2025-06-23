@@ -370,25 +370,34 @@ python inference.py \
 #### 1. 质量指标对比
 
 -   [chart_psnr_comparison.png](visualization/chart_psnr_comparison.png)：PSNR 指标详细对比
--   ![示例图片](visualization/chart_psnr_comparison.png)
+    [PSNR 指标详细对比](visualization/chart_psnr_comparison.png)
 -   [chart_ssim_comparison.png](visualization/chart_ssim_comparison.png)：SSIM 指标详细对比
+    [SSIM 指标详细对比](visualization/chart_ssim_comparison.png)
 -   [chart_performance_radar.png](visualization/chart_performance_radar.png)：综合性能雷达图
+    [综合性能雷达图](visualization/chart_performance_radar.png)
 
 #### 2. 时间性能分析
 
 -   [chart_time_performance.png](visualization/chart_time_performance.png)：推理时间对比
+    [推理时间对比](visualization/chart_time_performance.png)
 -   [chart_time_breakdown.png](visualization/chart_time_breakdown.png)：时间组成分析（预处理/推理/后处理）
+    [时间组成分析（预处理/推理/后处理）](visualization/chart_time_breakdown.png)
 -   [chart_efficiency.png](visualization/chart_efficiency.png)：效率对比分析
+    [效率对比分析](visualization/chart_efficiency.png)
 
 #### 3. 质量趋势分析
 
 -   [chart_psnr_trend.png](visualization/chart_psnr_trend.png)：PSNR 变化趋势
+    [PSNR 变化趋势](visualization/chart_psnr_trend.png)
 -   [chart_quality_vs_speed.png](visualization/chart_quality_vs_speed.png)：质量与速度权衡分析
+    [质量与速度权衡分析](visualization/chart_quality_vs_speed.png)
 
 #### 4. 视频序列分析
 
 -   [chart_video_psnr_distribution.png](visualization/chart_video_psnr_distribution.png)：各视频序列 PSNR 分布
+    [各视频序列 PSNR 分布](visualization/chart_video_psnr_distribution.png)
 -   [chart_video_ssim_distribution.png](visualization/chart_video_ssim_distribution.png)：各视频序列 SSIM 分布
+    [各视频序列 SSIM 分布](visualization/chart_video_ssim_distribution.png)
 
 ### 主要发现
 
