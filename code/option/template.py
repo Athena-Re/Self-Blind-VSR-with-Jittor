@@ -6,7 +6,7 @@ def set_template(args):
         args.data_train = 'REDS_BLURDOWN_GAUSSIAN'
         args.dir_data = '../dataset/REDS/train'
         args.data_test = 'REDS_HRLR'
-        args.dir_data_test = '../dataset/REDS4_BlurDown_Gaussian'
+        args.dir_data_test = '../dataset'
         args.HR_in = False
         args.scale = 4
         args.patch_size = 160
@@ -33,7 +33,7 @@ def set_template(args):
         args.data_train = 'REDS_BLURDOWN_REALISTIC'
         args.dir_data = '../dataset/REDS/train'
         args.data_test = 'REDS_HRLR'
-        args.dir_data_test = '../dataset/REDS4_BlurDown_Realistic'
+        args.dir_data_test = '../dataset'
         args.HR_in = False
         args.scale = 4
         args.patch_size = 160

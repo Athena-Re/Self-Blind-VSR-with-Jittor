@@ -1,0 +1,420 @@
+PWC_Recons(
+    in_conv: Sequential(
+        0: Conv(3, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+    )
+    extra_feat: Sequential(
+        0: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        1: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        2: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+    )
+    fusion_conv: Sequential(
+        0: Conv(640, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+    )
+    recons_net: Sequential(
+        0: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        1: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        2: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        3: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        4: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        5: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        6: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        7: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        8: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        9: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        10: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        11: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        12: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        13: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        14: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        15: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        16: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        17: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        18: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+        19: ResBlock(
+            conv1: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            conv2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+            relu: relu()
+        )
+    )
+    out_conv: Sequential(
+        0: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+        1: Conv(128, 3, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[3,], None, Kw=None, fan=None, i=None, bound=None)
+    )
+    upsample_layers: Sequential(
+        0: Conv(128, 512, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[512,], None, Kw=None, fan=None, i=None, bound=None)
+        1: PixelShuffle(2)
+        2: Conv(128, 512, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[512,], None, Kw=None, fan=None, i=None, bound=None)
+        3: PixelShuffle(2)
+    )
+    flow_net: Flow_PWC(
+        moduleNetwork: Network(
+            moduleExtractor: Extractor(
+                moduleOne: Sequential(
+                    0: Conv(3, 16, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[16,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(16, 16, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[16,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(16, 16, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[16,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(16, 32, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(32, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(32, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(32, 64, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(64, 96, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(96, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(96, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(96, 128, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(128, 196, (3, 3), (2, 2), (1, 1), (1, 1), 1, float32[196,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(196, 196, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[196,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(196, 196, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[196,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                )
+            )
+            moduleTwo: Decoder(
+                moduleUpflow: ConvTranspose(2, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleUpfeat: ConvTranspose(597, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleOne: Sequential(
+                    0: Conv(117, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(245, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(373, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(469, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(533, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(565, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+            moduleThr: Decoder(
+                moduleUpflow: ConvTranspose(2, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleUpfeat: ConvTranspose(629, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleOne: Sequential(
+                    0: Conv(149, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(277, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(405, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(501, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(565, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(597, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+            moduleFou: Decoder(
+                moduleUpflow: ConvTranspose(2, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleUpfeat: ConvTranspose(661, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleOne: Sequential(
+                    0: Conv(181, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(309, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(437, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(533, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(597, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(629, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+            moduleFiv: Decoder(
+                moduleUpflow: ConvTranspose(2, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleUpfeat: ConvTranspose(529, 2, (4, 4), (2, 2), (1, 1), (0, 0), 1, bias=float32[2,], dilation=(1, 1), fan=None, i=None, bound=None)
+                moduleOne: Sequential(
+                    0: Conv(213, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(341, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(469, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(565, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(629, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(661, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+            moduleSix: Decoder(
+                moduleOne: Sequential(
+                    0: Conv(81, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleTwo: Sequential(
+                    0: Conv(209, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleThr: Sequential(
+                    0: Conv(337, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFou: Sequential(
+                    0: Conv(433, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleFiv: Sequential(
+                    0: Conv(497, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                )
+                moduleSix: Sequential(
+                    0: Conv(529, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+            moduleRefiner: Refiner(
+                moduleMain: Sequential(
+                    0: Conv(565, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: leaky_relu()
+                    2: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: leaky_relu()
+                    4: Conv(128, 128, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[128,], None, Kw=None, fan=None, i=None, bound=None)
+                    5: leaky_relu()
+                    6: Conv(128, 96, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[96,], None, Kw=None, fan=None, i=None, bound=None)
+                    7: leaky_relu()
+                    8: Conv(96, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    9: leaky_relu()
+                    10: Conv(64, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+                    11: leaky_relu()
+                    12: Conv(32, 2, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[2,], None, Kw=None, fan=None, i=None, bound=None)
+                )
+            )
+        )
+    )
+    kernel_net: KernelNet(
+        in_conv: Conv(15, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+        body1: Sequential(
+            0: RCAB(
+                body: Sequential(
+                    0: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: relu()
+                    2: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: CALayer(
+                        avg_pool: AdaptiveAvgPool2d(1)
+                        conv_du: Sequential(
+                            0: Conv(64, 4, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[4,], None, Kw=None, fan=None, i=None, bound=None)
+                            1: relu()
+                            2: Conv(4, 64, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                            3: Sigmoid()
+                        )
+                    )
+                )
+            )
+            1: RCAB(
+                body: Sequential(
+                    0: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: relu()
+                    2: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: CALayer(
+                        avg_pool: AdaptiveAvgPool2d(1)
+                        conv_du: Sequential(
+                            0: Conv(64, 4, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[4,], None, Kw=None, fan=None, i=None, bound=None)
+                            1: relu()
+                            2: Conv(4, 64, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                            3: Sigmoid()
+                        )
+                    )
+                )
+            )
+        )
+        global_pool: AdaptiveAvgPool2d(13)
+        body2: Sequential(
+            0: RCAB(
+                body: Sequential(
+                    0: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: relu()
+                    2: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: CALayer(
+                        avg_pool: AdaptiveAvgPool2d(1)
+                        conv_du: Sequential(
+                            0: Conv(64, 4, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[4,], None, Kw=None, fan=None, i=None, bound=None)
+                            1: relu()
+                            2: Conv(4, 64, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                            3: Sigmoid()
+                        )
+                    )
+                )
+            )
+            1: RCAB(
+                body: Sequential(
+                    0: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    1: relu()
+                    2: Conv(64, 64, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                    3: CALayer(
+                        avg_pool: AdaptiveAvgPool2d(1)
+                        conv_du: Sequential(
+                            0: Conv(64, 4, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[4,], None, Kw=None, fan=None, i=None, bound=None)
+                            1: relu()
+                            2: Conv(4, 64, (1, 1), (1, 1), (0, 0), (1, 1), 1, float32[64,], None, Kw=None, fan=None, i=None, bound=None)
+                            3: Sigmoid()
+                        )
+                    )
+                )
+            )
+            2: Conv(64, 32, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[32,], None, Kw=None, fan=None, i=None, bound=None)
+            3: Conv(32, 1, (3, 3), (1, 1), (1, 1), (1, 1), 1, float32[1,], None, Kw=None, fan=None, i=None, bound=None)
+        )
+        fc_net: Sequential(
+            0: Linear(169, 1000, float32[1000,], None)
+            1: Linear(1000, 169, float32[169,], None)
+            2: softmax()
+        )
+    )
+)

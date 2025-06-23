@@ -21,7 +21,11 @@ class Logger:
         self.n_processes = 8
 
         if args.load == '.':
-            if args.save == '.': args.save = datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+            if args.save == '.':
+                args.save = datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
+            else:
+                # 为指定的save名称添加时间戳
+                args.save = args.save + '_' + datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
 
             self.dir = os.path.join(args.experiment_dir, args.save)
         else:

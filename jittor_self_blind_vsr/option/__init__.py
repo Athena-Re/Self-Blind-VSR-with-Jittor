@@ -1,4 +1,6 @@
 import argparse
+import platform
+import os
 from option import template
 
 parser = argparse.ArgumentParser(description='Video_SR')
@@ -81,7 +83,7 @@ parser.add_argument('--mid_loss_weight', type=float, default=1.,
                     help='the weight of mid loss in trainer')
 
 # Log specifications
-parser.add_argument('--experiment_dir', type=str, default='../experiment/',
+parser.add_argument('--experiment_dir', type=str, default='../experiment_jittor/',
                     help='file name to save')
 parser.add_argument('--pretrain_models_dir', type=str, default='../pretrain_models/',
                     help='file name to save')
@@ -93,6 +95,8 @@ parser.add_argument('--load', type=str, default='.',
                     help='file name to load')
 parser.add_argument('--resume', action='store_true',
                     help='resume from the latest if true')
+parser.add_argument('--reset', action='store_true',
+                    help='reset the experiment directory')
 parser.add_argument('--print_every', type=int, default=100,
                     help='how many batches to wait before logging training status')
 parser.add_argument('--save_images', default=True, action='store_true',
@@ -119,6 +123,17 @@ template.set_template(args)
 
 if args.epochs == 0:
     args.epochs = 1e8
+
+# 检测操作系统类型
+system_name = platform.system().lower()
+args.os_type = 'windows' if system_name == 'windows' else 'unix'
+print(f"操作系统类型: {args.os_type} ({platform.system()})")
+
+# 如果是Windows，自动调整工作线程数量
+if args.os_type == 'windows' and args.n_threads > 2:
+    original_threads = args.n_threads
+    args.n_threads = min(2, original_threads)
+    print(f"Windows系统检测: 自动调整工作线程数为 {args.n_threads} (原设置: {original_threads})")
 
 for arg in vars(args):
     if vars(args)[arg] == 'True':

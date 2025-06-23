@@ -6,12 +6,21 @@ from tqdm import tqdm
 from utils import data_utils
 from trainer.trainer import Trainer
 from loss import kernel_loss
+import time
 
 
 class Trainer_Flow_Video(Trainer):
     def __init__(self, args, loader, my_model, my_loss, ckp):
         super(Trainer_Flow_Video, self).__init__(args, loader, my_model, my_loss, ckp)
         print("Using Trainer_Flow_Video")
+        
+        # 显示当前设备状态
+        if jt.flags.use_cuda:
+            print("🚀 训练器正在使用GPU加速")
+            print(f"🚀 当前GPU状态: CUDA={jt.flags.use_cuda}")
+        else:
+            print("🐌 训练器正在使用CPU")
+        
         assert args.n_sequence == 5, \
             "Just support args.n_sequence=5; but get args.n_sequence={}".format(args.n_sequence)
 
@@ -67,10 +76,13 @@ class Trainer_Flow_Video(Trainer):
         return optimizer
 
     def train(self):
-        print("Now training")
-        self.scheduler.step()
+        epoch = self.scheduler.last_epoch + 1  # 获取当前epoch
+        self.scheduler.step()  # 为下一个epoch更新学习率
         self.loss.step()
-        epoch = self.scheduler.last_epoch + 1
+        
+        print("\n====================================")
+        print("开始训练 Epoch {}".format(epoch))
+        print("====================================")
         lr = self.scheduler.get_lr()
         self.ckp.write_log('Epoch {:3d} with Lr {:.2e}'.format(epoch, decimal.Decimal(lr)))
         self.loss.start_log()
@@ -81,11 +93,32 @@ class Trainer_Flow_Video(Trainer):
         kloss_boundaries_sum = 0.
         kloss_sparse_sum = 0.
         kloss_center_sum = 0.
-
-        # 创建训练进度条
-        train_loader = tqdm(self.loader_train, desc=f"Epoch {epoch}", unit="batch")
+        train_psnr_sum = 0.
         
-        for batch, (input, _, kernel, _) in enumerate(train_loader):
+        # 获取数据集大小和批次数
+        num_batches = len(self.loader_train)
+        total_samples = len(self.loader_train.dataset)
+        print(f"训练集大小: {total_samples}样本, {num_batches}批次")
+        
+        # 创建进度条
+        train_pbar = tqdm(
+            total=num_batches,
+            desc=f'训练(Epoch {epoch})',
+            ncols=120,
+            leave=True,
+            position=0,
+            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}'
+        )
+
+        batch_time_avg = 0
+        data_time_avg = 0
+        start_time = time.time()
+        end_time = time.time()
+
+        for batch, (input, _, kernel, _) in enumerate(self.loader_train):
+            # 计算数据加载时间
+            data_time = time.time() - end_time
+            data_time_avg = (data_time_avg * batch + data_time) / (batch + 1) if batch > 0 else data_time
 
             output_dict, mid_loss = self.model({'x': input, 'mode': 'train'})
             input_center = output_dict['input']
@@ -115,7 +148,7 @@ class Trainer_Flow_Video(Trainer):
             kloss_center_sum = kloss_center_sum + kloss_center.item()
             loss = loss + w3 * kloss_center
 
-            if mid_loss:
+            if mid_loss:  # mid loss is the loss during the model
                 loss = loss + self.args.mid_loss_weight * mid_loss
                 mid_loss_sum = mid_loss_sum + mid_loss.item()
             
@@ -123,21 +156,37 @@ class Trainer_Flow_Video(Trainer):
             self.optimizer.step()
 
             self.ckp.report_log(loss.item())
-
+            
+            # 计算PSNR用于显示
+            with jt.no_grad():
+                train_psnr = data_utils.calc_psnr(input_center, recons_down, rgb_range=self.args.rgb_range, is_rgb=True)
+                train_psnr_sum = train_psnr_sum + train_psnr
+            
             # 更新进度条
-            train_loader.set_postfix({
-                'Loss': f'{loss.item():.4f}',
-                'Cycle': f'{cycle_loss.item():.4f}',
-                'Boundaries': f'{kloss_boundaries.item():.4f}',
-                'Sparse': f'{kloss_sparse.item():.4f}',
-                'Center': f'{kloss_center.item():.4f}',
-                'LR': f'{lr:.2e}'
-            })
+            batch_time = time.time() - end_time
+            batch_time_avg = (batch_time_avg * batch + batch_time) / (batch + 1) if batch > 0 else batch_time
+            end_time = time.time()
+            
+            # 更新进度条信息 - 只显示关键指标
+            postfix_dict = {
+                'PSNR': f'{train_psnr:.2f}',
+                'loss': f'{loss.item():.3f}',
+                'cycle': f'{cycle_loss.item():.3f}'
+            }
+            train_pbar.set_postfix(**postfix_dict)
+            train_pbar.update(1)
 
             if (batch + 1) % self.args.print_every == 0:
-                self.ckp.write_log('[{}/{}]\tLoss : [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
-                    (batch + 1) * self.args.batch_size,
-                    len(self.loader_train.dataset),
+                progress_percent = 100 * (batch + 1) / num_batches
+                elapsed_time = time.time() - start_time
+                estimated_total = elapsed_time / (batch + 1) * num_batches
+                estimated_remaining = estimated_total - elapsed_time
+                
+                self.ckp.write_log('[{}/{} ({:.1f}%)]\t进度: [{}/{}]\t预计剩余时间: {:.1f}分钟\tPSNR: {:.2f}\tLoss: [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
+                    batch + 1, num_batches, progress_percent,
+                    (batch + 1) * self.args.batch_size, total_samples,
+                    estimated_remaining / 60,
+                    train_psnr_sum / (batch + 1),
                     self.ckp.loss_log[-1] / (batch + 1),
                     self.loss.display_loss(batch),
                     cycle_loss_sum / (batch + 1),
@@ -147,6 +196,16 @@ class Trainer_Flow_Video(Trainer):
                     mid_loss_sum / (batch + 1)
                 ))
 
+        # 关闭进度条
+        train_pbar.close()
+        
+        # 显示训练总结
+        total_time = time.time() - start_time
+        avg_train_psnr = train_psnr_sum / len(self.loader_train)
+        self.ckp.write_log("训练Epoch完成: 耗时 {:.2f}秒 ({:.2f}分钟), 平均PSNR: {:.2f}dB".format(
+            total_time, total_time / 60, avg_train_psnr
+        ))
+        
         self.loss.end_log(len(self.loader_train))
         self.mid_loss_log.append(mid_loss_sum / len(self.loader_train))
         self.cycle_loss_log.append(cycle_loss_sum / len(self.loader_train))
@@ -156,14 +215,26 @@ class Trainer_Flow_Video(Trainer):
 
     def test(self):
         epoch = self.scheduler.last_epoch + 1
-        self.ckp.write_log('\nEvaluation:')
+        self.ckp.write_log('\n验证评估:')
+        print("\n====================================")
+        print("开始验证 Epoch {}".format(epoch))
+        print("====================================")
+        
         self.model.eval()
         self.ckp.start_log(train=False)
         cycle_psnr_list = []
         downdata_psnr_list = []
+        
+        test_start_time = time.time()
 
         with jt.no_grad():
-            tqdm_test = tqdm(self.loader_test, ncols=80)
+            tqdm_test = tqdm(
+                self.loader_test, 
+                desc=f'验证(Epoch {epoch})',
+                ncols=110,
+                leave=True,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}'
+            )
             for idx_img, (input, gt, kernel, filename) in enumerate(tqdm_test):
 
                 filename = filename[self.args.n_sequence // 2][0]
@@ -184,6 +255,12 @@ class Trainer_Flow_Video(Trainer):
                 self.ckp.report_log(PSNR, train=False)
                 cycle_psnr_list.append(cycle_PSNR)
                 downdata_psnr_list.append(downdata_PSNR)
+                
+                # 更新进度条
+                tqdm_test.set_postfix({
+                    'PSNR': f'{PSNR:.2f}',
+                    'cycle': f'{cycle_PSNR:.2f}'
+                })
 
                 if self.args.save_images:
                     gt, input_center, recons, input_center_cycle, input_down_center, recons_down = data_utils.postprocess(
@@ -191,17 +268,27 @@ class Trainer_Flow_Video(Trainer):
                         rgb_range=self.args.rgb_range,
                         ycbcr_flag=False)
 
-                    save_list = [gt, input_center, recons]
-                    self.ckp.save_images(filename, save_list, epoch)
+                    gt_kernel = self.auto_crop_kernel(kernel[:, self.args.n_sequence // 2, :, :, :])
+                    gt_kernel = self.process_kernel(gt_kernel)
 
+                    est_kernel = self.process_kernel(est_kernel)
+
+                    save_list = [gt, input_center, recons, input_center_cycle,
+                                 input_down_center, recons_down, est_kernel, gt_kernel]
+                    self.ckp.save_images(filename, save_list, epoch)
+            
+            # 验证总结
+            test_time = time.time() - test_start_time
+            
             self.ckp.end_log(len(self.loader_test), train=False)
             best = self.ckp.psnr_log.max(0)
-            self.ckp.write_log('[{}]\taverage Cycle-PSNR: {:.3f} Down-PSNR: {:.3f} PSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
+            self.ckp.write_log('[{}]\t平均 Cycle-PSNR: {:.3f} Down-PSNR: {:.3f} PSNR: {:.3f} (最佳: {:.3f} @epoch {}) 验证耗时: {:.2f}秒'.format(
                 self.args.data_test,
                 sum(cycle_psnr_list) / len(cycle_psnr_list),
                 sum(downdata_psnr_list) / len(downdata_psnr_list),
                 self.ckp.psnr_log[-1],
-                best[0], best[1] + 1))
+                best[0], best[1] + 1,
+                test_time))
             self.cycle_psnr_log.append(sum(cycle_psnr_list) / len(cycle_psnr_list))
             self.downdata_psnr_log.append(sum(downdata_psnr_list) / len(downdata_psnr_list))
             if not self.args.test_only:
@@ -220,5 +307,22 @@ class Trainer_Flow_Video(Trainer):
                     'cycle_loss_log': self.cycle_loss_log,
                     'kloss_boundaries_log': self.kloss_boundaries_log,
                     'kloss_sparse_log': self.kloss_sparse_log,
-                    'kloss_center_log': self.kloss_center_log
-                }, os.path.join(self.ckp.dir, 'mid_logs.pkl')) 
+                    'kloss_center_log': self.kloss_center_log,
+                }, os.path.join(self.ckp.dir, 'mid_logs.pkl'))
+
+    def auto_crop_kernel(self, kernel):
+        end = 0
+        for i in range(kernel.size()[2]):
+            if kernel[0, 0, end, 0] == -1:
+                break
+            end += 1
+        kernel = kernel[:, :, :end, :end]
+        return kernel
+
+    def process_kernel(self, kernel):
+        mi = jt.min(kernel)
+        ma = jt.max(kernel)
+        kernel = (kernel - mi) / (ma - mi)
+        kernel = jt.concat([kernel, kernel, kernel], dim=1)
+        kernel = kernel.mul(255.).clamp(0, 255).round()
+        return kernel 

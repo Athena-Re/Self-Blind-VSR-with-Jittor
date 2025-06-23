@@ -195,7 +195,6 @@ $RECYCLE.BIN/
 # Deep Learning specific
 # Dataset directories (usually too large for git)
 dataset/
-data/
 datasets/
 
 # Model files (usually too large for git)
