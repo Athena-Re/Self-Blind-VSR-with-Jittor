@@ -55,13 +55,13 @@ class Trainer_Flow_Video(Trainer):
         return optimizer
 
     def train(self):
-        print("\n====================================")
-        print("开始训练 Epoch {}".format(self.scheduler.last_epoch + 1))
-        print("====================================")
-        
-        self.scheduler.step()
+        epoch = self.scheduler.last_epoch + 1  # 获取当前epoch
+        self.scheduler.step()  # 为下一个epoch更新学习率
         self.loss.step()
-        epoch = self.scheduler.last_epoch + 1
+        
+        print("\n====================================")
+        print("开始训练 Epoch {}".format(epoch))
+        print("====================================")
         lr = self.scheduler.get_lr()[0]
         self.ckp.write_log('Epoch {:3d} with Lr {:.2e}'.format(epoch, decimal.Decimal(lr)))
         self.loss.start_log()
@@ -72,6 +72,7 @@ class Trainer_Flow_Video(Trainer):
         kloss_boundaries_sum = 0.
         kloss_sparse_sum = 0.
         kloss_center_sum = 0.
+        train_psnr_sum = 0.
         
         # 获取数据集大小和批次数
         num_batches = len(self.loader_train)
@@ -82,9 +83,10 @@ class Trainer_Flow_Video(Trainer):
         train_pbar = tqdm(
             total=num_batches,
             desc=f'训练(Epoch {epoch})',
-            ncols=100,
+            ncols=120,
             leave=True,
-            position=0
+            position=0,
+            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}'
         )
 
         batch_time_avg = 0
@@ -136,18 +138,21 @@ class Trainer_Flow_Video(Trainer):
 
             self.ckp.report_log(loss.item())
             
+            # 计算PSNR用于显示
+            with torch.no_grad():
+                train_psnr = data_utils.calc_psnr(input_center, recons_down, rgb_range=self.args.rgb_range, is_rgb=True)
+                train_psnr_sum = train_psnr_sum + train_psnr
+            
             # 更新进度条
             batch_time = time.time() - end_time
             batch_time_avg = (batch_time_avg * batch + batch_time) / (batch + 1) if batch > 0 else batch_time
             end_time = time.time()
             
-            # 更新进度条信息
+            # 更新进度条信息 - 只显示关键指标
             postfix_dict = {
-                'total_loss': f'{loss.item():.4f}',
-                'cycle': f'{cycle_loss.item():.4f}',
-                'mid': f'{mid_loss.item() if mid_loss else 0:.4f}',
-                'b_time': f'{batch_time_avg:.2f}s',
-                'd_time': f'{data_time_avg:.2f}s'
+                'PSNR': f'{train_psnr:.2f}',
+                'loss': f'{loss.item():.3f}',
+                'cycle': f'{cycle_loss.item():.3f}'
             }
             train_pbar.set_postfix(**postfix_dict)
             train_pbar.update(1)
@@ -158,10 +163,11 @@ class Trainer_Flow_Video(Trainer):
                 estimated_total = elapsed_time / (batch + 1) * num_batches
                 estimated_remaining = estimated_total - elapsed_time
                 
-                self.ckp.write_log('[{}/{} ({:.1f}%)]\t进度: [{}/{}]\t预计剩余时间: {:.1f}分钟\tLoss: [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
+                self.ckp.write_log('[{}/{} ({:.1f}%)]\t进度: [{}/{}]\t预计剩余时间: {:.1f}分钟\tPSNR: {:.2f}\tLoss: [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
                     batch + 1, num_batches, progress_percent,
                     (batch + 1) * self.args.batch_size, total_samples,
                     estimated_remaining / 60,
+                    train_psnr_sum / (batch + 1),
                     self.ckp.loss_log[-1] / (batch + 1),
                     self.loss.display_loss(batch),
                     cycle_loss_sum / (batch + 1),
@@ -176,8 +182,9 @@ class Trainer_Flow_Video(Trainer):
         
         # 显示训练总结
         total_time = time.time() - start_time
-        self.ckp.write_log("训练Epoch完成: 耗时 {:.2f}秒 ({:.2f}分钟)".format(
-            total_time, total_time / 60
+        avg_train_psnr = train_psnr_sum / len(self.loader_train)
+        self.ckp.write_log("训练Epoch完成: 耗时 {:.2f}秒 ({:.2f}分钟), 平均PSNR: {:.2f}dB".format(
+            total_time, total_time / 60, avg_train_psnr
         ))
         
         self.loss.end_log(len(self.loader_train))
@@ -205,8 +212,9 @@ class Trainer_Flow_Video(Trainer):
             tqdm_test = tqdm(
                 self.loader_test, 
                 desc=f'验证(Epoch {epoch})',
-                ncols=100,
-                leave=True
+                ncols=110,
+                leave=True,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}] {postfix}'
             )
             for idx_img, (input, gt, kernel, filename) in enumerate(tqdm_test):
 
@@ -232,8 +240,8 @@ class Trainer_Flow_Video(Trainer):
                 
                 # 更新进度条
                 tqdm_test.set_postfix({
-                    'PSNR': f'{PSNR:.2f}dB',
-                    'cycle': f'{cycle_PSNR:.2f}dB',
+                    'PSNR': f'{PSNR:.2f}',
+                    'cycle': f'{cycle_PSNR:.2f}'
                 })
 
                 if self.args.save_images:
