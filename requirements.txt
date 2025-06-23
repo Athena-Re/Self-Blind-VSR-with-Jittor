@@ -1,0 +1,37 @@
+# Self-Blind-VSR Dependencies
+# 该项目包含PyTorch和Jittor两种实现版本
+
+# 基础科学计算库
+numpy>=1.19.0
+scipy>=1.6.0
+matplotlib>=3.3.0
+
+# 图像处理库
+opencv-python>=4.5.0
+Pillow>=8.0.0
+scikit-image>=0.18.0
+imageio>=2.15.0
+
+# 进度条和工具
+tqdm>=4.60.0
+
+# PyTorch版本依赖 (选择安装)
+# 如果使用PyTorch版本，请安装以下依赖:
+# torch>=1.7.0
+# torchvision>=0.8.0
+# cupy-cuda111>=8.0.0  # 可选，用于CUDA correlation加速，根据CUDA版本选择
+
+# Jittor版本依赖 (选择安装)
+# 如果使用Jittor版本，请安装以下依赖:
+# jittor>=1.3.8.5
+
+# 说明:
+# 1. PyTorch版本运行: cd code && python main.py
+# 2. Jittor版本运行: cd jittor_self_blind_vsr && python main.py
+# 3. 两个版本不需要同时安装，请根据需要选择其中一个
+# 4. cupy是可选依赖，用于加速PyTorch版本的correlation计算
+# 5. 安装CUDA版本的cupy需要根据你的CUDA版本选择合适的包:
+#    - CUDA 10.2: cupy-cuda102
+#    - CUDA 11.0: cupy-cuda110
+#    - CUDA 11.1: cupy-cuda111
+#    - CUDA 11.2+: cupy-cuda11x 

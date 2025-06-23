@@ -42,7 +42,17 @@ class Inference:
         self.model_path = args.model_path
         self.result_path = args.result_path
         self.dataset_name = args.dataset_name
-        self.blur_type = args.blur_type
+        
+        # 根据模型文件名自动推断blur_type
+        model_filename = os.path.basename(self.model_path).lower()
+        if 'realistic' in model_filename:
+            self.blur_type = 'Realistic'
+        elif 'gaussian' in model_filename:
+            self.blur_type = 'Gaussian'
+        else:
+            # 如果无法从文件名推断，则使用命令行参数
+            self.blur_type = args.blur_type
+            
         self.border = args.border
         self.save_image = args.save_image
         self.n_seq = args.n_seq
@@ -70,6 +80,13 @@ class Inference:
             self.logger.write_log(f'GPU设备数量: {jt.get_device_count()}')
         else:
             self.logger.write_log('使用CPU进行推理')
+
+        # 显示模糊类型推断信息
+        model_filename = os.path.basename(self.model_path).lower()
+        if 'realistic' in model_filename or 'gaussian' in model_filename:
+            self.logger.write_log(f'从模型文件名自动推断blur_type: {self.blur_type}')
+        else:
+            self.logger.write_log(f'使用命令行参数blur_type: {self.blur_type}')
 
         self.logger.write_log('Inference - {} {}'.format(self.blur_type, self.dataset_name))
         self.logger.write_log('dataset_name: {}'.format(self.dataset_name))
@@ -297,14 +314,14 @@ if __name__ == '__main__':
                         help='Path to input LR videos')
     parser.add_argument('--gt_path', type=str, default='../dataset/gt',
                         help='Path to ground truth HR videos')
-    parser.add_argument('--model_path', type=str, default='../pretrain_models/self_blind_vsr_gaussian_numpy.pkl',
+    parser.add_argument('--model_path', type=str, default='../pretrain_models/self_blind_vsr_realistic_numpy.pkl',
                         help='Path to pretrained model')
     parser.add_argument('--result_path', type=str, default='../jittor_results',
                         help='Path to save results')
     parser.add_argument('--dataset_name', type=str, default='REDS4',
                         help='Dataset name for result folder naming (e.g., REDS4, Vid4, SPMCS)')
     parser.add_argument('--blur_type', type=str, default='Gaussian', choices=['Gaussian', 'Realistic'],
-                        help='Blur type: Gaussian or Realistic')
+                        help='Blur type: Gaussian or Realistic (自动从模型文件名推断，如包含realistic/gaussian关键词)')
     parser.add_argument('--infer_flag', type=str, default='.',
                         help='Inference flag for result folder naming')
 
