@@ -1,7 +1,51 @@
 import torch
+import os
+import tempfile
 
 import cupy
 import re
+
+# 设置cupy编译的临时目录
+def setup_cupy_temp_dir():
+    """设置cupy编译使用的临时目录"""
+    temp_dir = 'D:\\TEMP'
+    
+    # 确保目录存在
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir, exist_ok=True)
+    
+    # 设置cupy相关的环境变量
+    os.environ['CUPY_CACHE_DIR'] = os.path.join(temp_dir, 'cupy_cache')
+    os.environ['CUPY_DUMP_CUDA_SOURCE_ON_ERROR'] = '0'  # 减少错误时的输出
+    
+    # 创建cupy缓存目录
+    if not os.path.exists(os.environ['CUPY_CACHE_DIR']):
+        os.makedirs(os.environ['CUPY_CACHE_DIR'], exist_ok=True)
+    
+    # 设置临时目录环境变量
+    orig_temp = os.environ.get('TEMP')
+    orig_tmp = os.environ.get('TMP')
+    orig_tmpdir = os.environ.get('TMPDIR')
+    
+    os.environ['TEMP'] = temp_dir
+    os.environ['TMP'] = temp_dir  
+    os.environ['TMPDIR'] = temp_dir
+    
+    print(f"✓ 已设置cupy编译临时目录: {temp_dir}")
+    
+    return orig_temp, orig_tmp, orig_tmpdir
+
+def restore_temp_env(orig_temp, orig_tmp, orig_tmpdir):
+    """恢复原始临时目录环境变量"""
+    if orig_temp is not None:
+        os.environ['TEMP'] = orig_temp
+    if orig_tmp is not None:
+        os.environ['TMP'] = orig_tmp  
+    if orig_tmpdir is not None:
+        os.environ['TMPDIR'] = orig_tmpdir
+
+# 在导入时设置临时目录
+orig_env = setup_cupy_temp_dir()
 
 
 class Stream:
@@ -198,34 +242,39 @@ kernel_Correlation_updateGradSecond = '''
 	      int s2o = o;
 	      int s2p = p;
 	      
-	      //Get X,Y ranges and clamp
-	      // We add round_off before_s1 the int division and subtract round_off after it, to ensure the formula matches ceil behavior:
-	      int xmin = (l - 4 - s2o + round_off_s1 - 1) + 1 - round_off; // ceil (l - 4 - s2o)
-	      int ymin = (m - 4 - s2p + round_off_s1 - 1) + 1 - round_off; // ceil (l - 4 - s2o)
+	      int x_im = l + s2o;
+	      int y_im = m + s2p;
+	      int op = (p+4) * 9 + (o+4); // index[o,p]
 	      
-	      // Same here:
-	      int xmax = (l - 4 - s2o + round_off_s1) - round_off; // floor (l - 4 - s2o)
-	      int ymax = (m - 4 - s2p + round_off_s1) - round_off; // floor (m - 4 - s2p)
-          
-	      if (xmax>=0 && ymax>=0 && (xmin<=SIZE_3(gradOutput)-1) && (ymin<=SIZE_2(gradOutput)-1)) {
-	        xmin = max(0,xmin);
-	        xmax = min(SIZE_3(gradOutput)-1,xmax);
-	        
-	        ymin = max(0,ymin);
-	        ymax = min(SIZE_2(gradOutput)-1,ymax);
-	        
-	        // Get rbot0 data:
-	        int idxbot0 = ((intSample * SIZE_1(rbot0) + (m-s2p)) * SIZE_2(rbot0) + (l-s2o)) * SIZE_3(rbot0) + n;
+	      if (y_im >= (0 + 4) && y_im < (SIZE_2(gradSecond) + 4) && x_im >= (0 + 4) && x_im < (SIZE_3(gradSecond) + 4)) {
+	        int idxbot0 = ((intSample * SIZE_1(rbot0) + (y_im)) * SIZE_2(rbot0) + (x_im)) * SIZE_3(rbot0) + n;
 	        float bot0tmp = rbot0[idxbot0]; // rbot1[l+s2o,m+s2p,n]
 	        
-	        // Index offset for gradOutput in following loops:
-	        int op = (p+4) * 9 + (o+4); // index[o,p]
-	        int idxopoffset = (intSample * SIZE_1(gradOutput) + op);
+	        const int round_off = ROUND_OFF;
+	        const int round_off_s1 = round_off;
 	        
-	        for (int y = ymin; y <= ymax; y++) {
-	          for (int x = xmin; x <= xmax; x++) {
-	            int idxgradOutput = (idxopoffset * SIZE_2(gradOutput) + y) * SIZE_3(gradOutput) + x; // gradOutput[x,y,o,p]
-	            sum += gradOutput[idxgradOutput] * bot0tmp;
+	        int xmin = (x_im - s2o - 4 + round_off_s1 - 1) + 1 - round_off; // ceil (l - 4)
+	        int ymin = (y_im - s2p - 4 + round_off_s1 - 1) + 1 - round_off; // ceil (l - 4)
+	        
+	        // Same here:
+	        int xmax = (x_im - s2o - 4 + round_off_s1) - round_off; // floor (l - 4)
+	        int ymax = (y_im - s2p - 4 + round_off_s1) - round_off; // floor (m - 4)
+	        
+	        if (xmax>=0 && ymax>=0 && (xmin<=SIZE_3(gradOutput)-1) && (ymin<=SIZE_2(gradOutput)-1)) {
+	          xmin = max(0,xmin);
+	          xmax = min(SIZE_3(gradOutput)-1,xmax);
+	          
+	          ymin = max(0,ymin);
+	          ymax = min(SIZE_2(gradOutput)-1,ymax);
+	          
+	          // Index offset for gradOutput in following loops:
+	          int idxopoffset = (intSample * SIZE_1(gradOutput) + op);
+	          
+	          for (int y = ymin; y <= ymax; y++) {
+	            for (int x = xmin; x <= xmax; x++) {
+	              int idxgradOutput = (idxopoffset * SIZE_2(gradOutput) + y) * SIZE_3(gradOutput) + x; // gradOutput[x,y,o,p]
+	              sum += gradOutput[idxgradOutput] * bot0tmp;
+	            }
 	          }
 	        }
 	      }
@@ -237,6 +286,8 @@ kernel_Correlation_updateGradSecond = '''
 	} }
 '''
 
+
+# end
 
 def cupy_kernel(strFunction, objectVariables):
     strKernel = globals()[strFunction]
@@ -268,10 +319,9 @@ def cupy_kernel(strFunction, objectVariables):
 
         strTensor = strArgs[0]
         intStrides = objectVariables[strTensor].stride()
-        strIndex = ['((' + strArgs[intArg + 1].replace('{', '(').replace('}', ')').strip() + ')*' + str(
-            intStrides[intArg]) + ')' for intArg in range(intArgs)]
+        strIndex = [ '((' + strArgs[intArg + 1].replace('{', '(').replace('}', ')').strip() + ')*' + str(intStrides[intArg]) + ')' for intArg in range(intArgs) ]
 
-        strKernel = strKernel.replace(objectMatch.group(0), strTensor + '[' + str.join('+', strIndex) + ']')
+        strKernel = strKernel.replace(objectMatch.group(0), '(' + str.join('+', strIndex) + ')')
     # end
 
     return strKernel
@@ -279,7 +329,7 @@ def cupy_kernel(strFunction, objectVariables):
 
 # end
 
-# Cache for compiled kernels
+# Global kernel cache
 _kernel_cache = {}
 
 def cupy_launch(strFunction, strKernel):
@@ -289,6 +339,9 @@ def cupy_launch(strFunction, strKernel):
     # Check if kernel is already compiled and cached
     if cache_key not in _kernel_cache:
         try:
+            # 在编译前重新设置临时目录
+            temp_backup = setup_cupy_temp_dir()
+            
             # Try different cupy compilation methods based on version
             if hasattr(cupy, 'RawKernel'):
                 # Modern cupy version (>= 8.0)
@@ -302,12 +355,24 @@ def cupy_launch(strFunction, strKernel):
                 _kernel_cache[cache_key] = cupy.cuda.compile(strKernel).get_function(strFunction)
             else:
                 raise RuntimeError("Unable to compile CUDA kernel with current cupy version")
+                
+            print(f"✓ CUDA kernel '{strFunction}' 编译成功")
+            
         except Exception as e:
-            print(f"Warning: Failed to compile CUDA kernel: {e}")
+            error_msg = str(e)
+            print(f"⚠️ CUDA kernel '{strFunction}' 编译失败: {error_msg}")
+            
+            # 检查是否是中文路径问题
+            if "cannot open source file" in error_msg and any(ord(c) > 127 for c in error_msg):
+                print("  💡 检测到中文路径问题，自动切换到PyTorch实现")
+            
             # Create a dummy function that raises an error when called
             def dummy_kernel(*args, **kwargs):
                 raise RuntimeError(f"CUDA kernel compilation failed: {e}")
             _kernel_cache[cache_key] = dummy_kernel
+        finally:
+            # 恢复环境变量
+            restore_temp_env(*temp_backup)
     
     return _kernel_cache[cache_key]
 
@@ -446,10 +511,10 @@ def _check_cuda_availability():
             test_tensor = torch.zeros(1, 1, 8, 8, device='cuda', dtype=torch.float32)
             _ = _FunctionCorrelation.apply(test_tensor, test_tensor)
             _cuda_available = True
-            print("CUDA correlation implementation available")
+            print("✅ CUDA correlation implementation available")
         except Exception as e:
             _cuda_available = False
-            print(f"CUDA correlation compilation failed, using PyTorch fallback: {e}")
+            print(f"⚠️ CUDA correlation compilation failed, using PyTorch fallback: {e}")
     return _cuda_available
 
 def FunctionCorrelation(tensorFirst, tensorSecond):
@@ -457,7 +522,7 @@ def FunctionCorrelation(tensorFirst, tensorSecond):
         try:
             return _FunctionCorrelation.apply(tensorFirst, tensorSecond)
         except Exception as e:
-            print(f"CUDA correlation failed, falling back to PyTorch implementation: {e}")
+            print(f"⚠️ CUDA correlation failed, falling back to PyTorch implementation: {e}")
             # Import PyTorch fallback
             from .correlation_pytorch import FunctionCorrelationPytorch
             return FunctionCorrelationPytorch(tensorFirst, tensorSecond)

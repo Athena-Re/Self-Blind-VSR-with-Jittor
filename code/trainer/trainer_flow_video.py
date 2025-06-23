@@ -6,6 +6,7 @@ from tqdm import tqdm
 from utils import data_utils
 from trainer.trainer import Trainer
 from loss import kernel_loss
+import time
 
 
 class Trainer_Flow_Video(Trainer):
@@ -54,7 +55,10 @@ class Trainer_Flow_Video(Trainer):
         return optimizer
 
     def train(self):
-        print("Now training")
+        print("\n====================================")
+        print("开始训练 Epoch {}".format(self.scheduler.last_epoch + 1))
+        print("====================================")
+        
         self.scheduler.step()
         self.loss.step()
         epoch = self.scheduler.last_epoch + 1
@@ -68,9 +72,31 @@ class Trainer_Flow_Video(Trainer):
         kloss_boundaries_sum = 0.
         kloss_sparse_sum = 0.
         kloss_center_sum = 0.
+        
+        # 获取数据集大小和批次数
+        num_batches = len(self.loader_train)
+        total_samples = len(self.loader_train.dataset)
+        print(f"训练集大小: {total_samples}样本, {num_batches}批次")
+        
+        # 创建进度条
+        train_pbar = tqdm(
+            total=num_batches,
+            desc=f'训练(Epoch {epoch})',
+            ncols=100,
+            leave=True,
+            position=0
+        )
+
+        batch_time_avg = 0
+        data_time_avg = 0
+        start_time = time.time()
+        end_time = time.time()
 
         for batch, (input, _, kernel, _) in enumerate(self.loader_train):
-
+            # 计算数据加载时间
+            data_time = time.time() - end_time
+            data_time_avg = (data_time_avg * batch + data_time) / (batch + 1) if batch > 0 else data_time
+            
             input = input.to(self.device)
 
             output_dict, mid_loss = self.model({'x': input, 'mode': 'train'})
@@ -104,15 +130,38 @@ class Trainer_Flow_Video(Trainer):
             if mid_loss:  # mid loss is the loss during the model
                 loss = loss + self.args.mid_loss_weight * mid_loss
                 mid_loss_sum = mid_loss_sum + mid_loss.item()
+            
             loss.backward()
             self.optimizer.step()
 
             self.ckp.report_log(loss.item())
+            
+            # 更新进度条
+            batch_time = time.time() - end_time
+            batch_time_avg = (batch_time_avg * batch + batch_time) / (batch + 1) if batch > 0 else batch_time
+            end_time = time.time()
+            
+            # 更新进度条信息
+            postfix_dict = {
+                'total_loss': f'{loss.item():.4f}',
+                'cycle': f'{cycle_loss.item():.4f}',
+                'mid': f'{mid_loss.item() if mid_loss else 0:.4f}',
+                'b_time': f'{batch_time_avg:.2f}s',
+                'd_time': f'{data_time_avg:.2f}s'
+            }
+            train_pbar.set_postfix(**postfix_dict)
+            train_pbar.update(1)
 
             if (batch + 1) % self.args.print_every == 0:
-                self.ckp.write_log('[{}/{}]\tLoss : [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
-                    (batch + 1) * self.args.batch_size,
-                    len(self.loader_train.dataset),
+                progress_percent = 100 * (batch + 1) / num_batches
+                elapsed_time = time.time() - start_time
+                estimated_total = elapsed_time / (batch + 1) * num_batches
+                estimated_remaining = estimated_total - elapsed_time
+                
+                self.ckp.write_log('[{}/{} ({:.1f}%)]\t进度: [{}/{}]\t预计剩余时间: {:.1f}分钟\tLoss: [total: {:.4f}]{}[cycle: {:.4f}][boundaries: {:.4f}][sparse: {:.4f}][center: {:.4f}][mid: {:.4f}]'.format(
+                    batch + 1, num_batches, progress_percent,
+                    (batch + 1) * self.args.batch_size, total_samples,
+                    estimated_remaining / 60,
                     self.ckp.loss_log[-1] / (batch + 1),
                     self.loss.display_loss(batch),
                     cycle_loss_sum / (batch + 1),
@@ -122,6 +171,15 @@ class Trainer_Flow_Video(Trainer):
                     mid_loss_sum / (batch + 1)
                 ))
 
+        # 关闭进度条
+        train_pbar.close()
+        
+        # 显示训练总结
+        total_time = time.time() - start_time
+        self.ckp.write_log("训练Epoch完成: 耗时 {:.2f}秒 ({:.2f}分钟)".format(
+            total_time, total_time / 60
+        ))
+        
         self.loss.end_log(len(self.loader_train))
         self.mid_loss_log.append(mid_loss_sum / len(self.loader_train))
         self.cycle_loss_log.append(cycle_loss_sum / len(self.loader_train))
@@ -131,14 +189,25 @@ class Trainer_Flow_Video(Trainer):
 
     def test(self):
         epoch = self.scheduler.last_epoch + 1
-        self.ckp.write_log('\nEvaluation:')
+        self.ckp.write_log('\n验证评估:')
+        print("\n====================================")
+        print("开始验证 Epoch {}".format(epoch))
+        print("====================================")
+        
         self.model.eval()
         self.ckp.start_log(train=False)
         cycle_psnr_list = []
         downdata_psnr_list = []
+        
+        test_start_time = time.time()
 
         with torch.no_grad():
-            tqdm_test = tqdm(self.loader_test, ncols=80)
+            tqdm_test = tqdm(
+                self.loader_test, 
+                desc=f'验证(Epoch {epoch})',
+                ncols=100,
+                leave=True
+            )
             for idx_img, (input, gt, kernel, filename) in enumerate(tqdm_test):
 
                 filename = filename[self.args.n_sequence // 2][0]
@@ -160,6 +229,12 @@ class Trainer_Flow_Video(Trainer):
                 self.ckp.report_log(PSNR, train=False)
                 cycle_psnr_list.append(cycle_PSNR)
                 downdata_psnr_list.append(downdata_PSNR)
+                
+                # 更新进度条
+                tqdm_test.set_postfix({
+                    'PSNR': f'{PSNR:.2f}dB',
+                    'cycle': f'{cycle_PSNR:.2f}dB',
+                })
 
                 if self.args.save_images:
                     gt, input_center, recons, input_center_cycle, input_down_center, recons_down = data_utils.postprocess(
@@ -176,15 +251,19 @@ class Trainer_Flow_Video(Trainer):
                     save_list = [gt, input_center, recons, input_center_cycle,
                                  input_down_center, recons_down, est_kernel, gt_kernel]
                     self.ckp.save_images(filename, save_list, epoch)
-
+            
+            # 验证总结
+            test_time = time.time() - test_start_time
+            
             self.ckp.end_log(len(self.loader_test), train=False)
             best = self.ckp.psnr_log.max(0)
-            self.ckp.write_log('[{}]\taverage Cycle-PSNR: {:.3f} Down-PSNR: {:.3f} PSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
+            self.ckp.write_log('[{}]\t平均 Cycle-PSNR: {:.3f} Down-PSNR: {:.3f} PSNR: {:.3f} (最佳: {:.3f} @epoch {}) 验证耗时: {:.2f}秒'.format(
                 self.args.data_test,
                 sum(cycle_psnr_list) / len(cycle_psnr_list),
                 sum(downdata_psnr_list) / len(downdata_psnr_list),
                 self.ckp.psnr_log[-1],
-                best[0], best[1] + 1))
+                best[0], best[1] + 1,
+                test_time))
             self.cycle_psnr_log.append(sum(cycle_psnr_list) / len(cycle_psnr_list))
             self.downdata_psnr_log.append(sum(downdata_psnr_list) / len(downdata_psnr_list))
             if not self.args.test_only:

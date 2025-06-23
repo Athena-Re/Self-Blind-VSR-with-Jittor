@@ -67,6 +67,10 @@ class Logger:
         self.args = args
         self.psnr_log = torch.Tensor()
         self.loss_log = torch.Tensor()
+        
+        # 记录开始时间
+        self.start_time = time.time()
+        self.last_write_time = time.time()
 
         if args.load == '.':
             if args.save == '.':
@@ -98,7 +102,7 @@ class Logger:
             else:
                 self.loss_log = torch.load(self.dir + '/loss_log.pt')[:, -1]
                 self.psnr_log = torch.load(self.dir + '/psnr_log.pt')
-                print('Continue from epoch {}...'.format(len(self.psnr_log)))
+                print('继续从上次训练的Epoch {}开始...'.format(len(self.psnr_log)))
 
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
@@ -107,30 +111,50 @@ class Logger:
             os.makedirs(self.dir + '/model')
 
         if not os.path.exists(self.dir + '/result/' + self.args.data_test):
-            print("Creating dir for saving images...", self.dir + '/result/' + self.args.data_test)
+            print("创建保存图像的目录...", self.dir + '/result/' + self.args.data_test)
             os.makedirs(self.dir + '/result/' + self.args.data_test)
 
-        print('Save Path : {}'.format(self.dir))
+        print('📂 保存路径: {}'.format(self.dir))
 
         open_type = 'a' if os.path.exists(self.dir + '/log.txt') else 'w'
         self.log_file = open(self.dir + '/log.txt', open_type)
         with open(self.dir + '/config.txt', open_type) as f:
-            f.write('From epoch {}...'.format(len(self.psnr_log)) + '\n\n')
+            f.write('从Epoch {}开始训练...'.format(len(self.psnr_log)) + '\n\n')
+            f.write('配置时间: {}\n'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             for arg in vars(args):
                 f.write('{}: {}\n'.format(arg, getattr(args, arg)))
             f.write('\n')
 
     def write_log(self, log):
-        print(log)
-        self.log_file.write(log + '\n')
+        """记录日志并添加时间戳"""
+        # 获取当前时间
+        now = datetime.datetime.now()
+        elapsed = time.time() - self.start_time
+        hours, remainder = divmod(int(elapsed), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        # 添加时间戳的日志
+        timestamped_log = f"[{now.strftime('%H:%M:%S')}] [运行:{hours:02d}:{minutes:02d}:{seconds:02d}] {log}"
+        
+        # 在控制台使用清晰的格式输出
+        print(timestamped_log)
+        
+        # 写入日志文件
+        self.log_file.write(timestamped_log + '\n')
+        self.log_file.flush()  # 立即刷新确保日志写入
+        
+        # 更新最后写入时间
+        self.last_write_time = time.time()
 
     def save(self, trainer, epoch, is_best):
+        self.write_log(f"保存模型 Epoch {epoch}" + (" (最佳模型!)" if is_best else ""))
         trainer.model.save(self.dir, epoch, is_best)
         torch.save(self.psnr_log, os.path.join(self.dir, 'psnr_log.pt'))
         torch.save(trainer.optimizer.state_dict(), os.path.join(self.dir, 'optimizer.pt'))
         trainer.loss.save(self.dir)
         trainer.loss.plot_loss(self.dir, epoch)
         self.plot_psnr_log(epoch)
+        self.write_log(f"模型保存完成")
 
     def save_images(self, filename, save_list, epoch):
         if self.args.task == 'FlowVideoSR':
@@ -173,11 +197,11 @@ class Logger:
     def plot_loss_log(self, epoch):
         axis = np.linspace(1, epoch, epoch)
         fig = plt.figure()
-        plt.title('Loss Graph')
+        plt.title('损失曲线')
         plt.plot(axis, self.loss_log.numpy())
         plt.legend()
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
+        plt.xlabel('轮次 (Epochs)')
+        plt.ylabel('损失 (Loss)')
         plt.grid(True)
         plt.savefig(os.path.join(self.dir, 'loss.pdf'))
         plt.close(fig)
@@ -185,11 +209,11 @@ class Logger:
     def plot_psnr_log(self, epoch):
         axis = np.linspace(1, epoch, epoch)
         fig = plt.figure()
-        plt.title('PSNR Graph')
+        plt.title('PSNR曲线')
         plt.plot(axis, self.psnr_log.numpy())
         plt.legend()
-        plt.xlabel('Epochs')
-        plt.ylabel('PSNR')
+        plt.xlabel('轮次 (Epochs)')
+        plt.ylabel('PSNR (dB)')
         plt.grid(True)
         plt.savefig(os.path.join(self.dir, 'psnr.pdf'))
         plt.close(fig)
@@ -198,14 +222,26 @@ class Logger:
         epoch = len(data_list)
         axis = np.linspace(1, epoch, epoch)
         fig = plt.figure()
-        plt.title('{} Graph'.format(title))
-        plt.plot(axis, np.array(data_list))
+        plt.title(title)
+        plt.plot(axis, data_list)
         plt.legend()
-        plt.xlabel('Epochs')
+        plt.xlabel('轮次 (Epochs)')
         plt.ylabel(title)
         plt.grid(True)
         plt.savefig(os.path.join(self.dir, filename))
         plt.close(fig)
 
     def done(self):
+        # 计算总运行时间
+        total_time = time.time() - self.start_time
+        hours, remainder = divmod(int(total_time), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        # 记录总运行时间
+        end_msg = f"训练完成! 总运行时间: {hours:02d}:{minutes:02d}:{seconds:02d}"
+        self.write_log("=" * 50)
+        self.write_log(end_msg)
+        self.write_log("=" * 50)
+        
+        # 关闭文件
         self.log_file.close()
