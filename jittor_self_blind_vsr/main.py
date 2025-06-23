@@ -138,8 +138,13 @@ if __name__ == '__main__':
             
             train_start_time = time.time()
             while not t.terminate():
-                t.train()
-                t.test()
+                train_choice = t.train()
+                if train_choice == 'validate_then_save':
+                    t.test()
+                elif train_choice == 'save_only':
+                    print("✅ 模型已保存，跳过验证，继续下一轮训练")
+                elif train_choice == 'skip_save':
+                    print("⏭️ 跳过保存，继续下一轮训练")
                 
             total_train_time = time.time() - train_start_time
             print(f"\n====================================")

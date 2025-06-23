@@ -212,6 +212,44 @@ class Trainer_Flow_Video(Trainer):
         self.kloss_boundaries_log.append(kloss_boundaries_sum / len(self.loader_train))
         self.kloss_sparse_log.append(kloss_sparse_sum / len(self.loader_train))
         self.kloss_center_log.append(kloss_center_sum / len(self.loader_train))
+        
+        # 训练完成后的保存选项
+        print("\n====================================")
+        print("训练 Epoch {} 完成！".format(epoch))
+        print("选择保存策略:")
+        print("1. 立即保存模型（跳过验证）")
+        print("2. 先验证再保存（传统方式）")
+        print("3. 跳过保存，继续训练")
+        print("====================================")
+        
+        while True:
+            choice = input("请输入选择 (1/2/3): ").strip()
+            if choice == '1':
+                # 立即保存模型
+                print("💾 正在立即保存模型...")
+                if not self.args.test_only:
+                    # 直接保存当前模型状态
+                    self.ckp.save(self, epoch, is_best=False)
+                    # 保存训练日志
+                    jt.save({
+                        'downdata_psnr_log': self.downdata_psnr_log,
+                        'cycle_psnr_log': self.cycle_psnr_log,
+                        'mid_loss_log': self.mid_loss_log,
+                        'cycle_loss_log': self.cycle_loss_log,
+                        'kloss_boundaries_log': self.kloss_boundaries_log,
+                        'kloss_sparse_log': self.kloss_sparse_log,
+                        'kloss_center_log': self.kloss_center_log,
+                    }, os.path.join(self.ckp.dir, 'mid_logs.pkl'))
+                    print("✅ 模型已保存 (未验证)")
+                return 'save_only'
+            elif choice == '2':
+                print("🔄 将进行验证后保存...")
+                return 'validate_then_save'
+            elif choice == '3':
+                print("⏭️ 跳过保存，继续训练...")
+                return 'skip_save'
+            else:
+                print("❌ 无效选择，请输入 1、2 或 3")
 
     def test(self):
         epoch = self.scheduler.last_epoch + 1
