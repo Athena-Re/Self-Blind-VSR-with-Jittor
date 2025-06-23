@@ -41,9 +41,9 @@ class Inference:
             os.mkdir(self.result_path)
             print('mkdir: {}'.format(self.result_path))
 
-        time_str = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
-        infer_flag = args.infer_flag if args.infer_flag != '.' else time_str
-        self.result_path = os.path.join(self.result_path, 'infer_{}'.format(infer_flag))
+        time_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+        infer_flag = args.infer_flag if args.infer_flag != '.' else 'default'
+        self.result_path = os.path.join(self.result_path, 'infer_{}_{}'.format(infer_flag, time_str))
         if not os.path.exists(self.result_path):
             os.mkdir(self.result_path)
             print('mkdir: {}'.format(self.result_path))

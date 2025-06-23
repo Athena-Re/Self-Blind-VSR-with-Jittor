@@ -1,4 +1,6 @@
 import argparse
+import platform
+import os
 from option import template
 
 parser = argparse.ArgumentParser(description='Video_SR')
@@ -103,6 +105,17 @@ template.set_template(args)
 
 if args.epochs == 0:
     args.epochs = 1e8
+
+# 检测操作系统类型
+system_name = platform.system().lower()
+args.os_type = 'windows' if system_name == 'windows' else 'unix'
+print(f"操作系统类型: {args.os_type} ({platform.system()})")
+
+# 如果是Windows，自动调整工作线程数量
+if args.os_type == 'windows' and args.n_threads > 2:
+    original_threads = args.n_threads
+    args.n_threads = min(2, original_threads)
+    print(f"Windows系统检测: 自动调整工作线程数为 {args.n_threads} (原设置: {original_threads})")
 
 for arg in vars(args):
     if vars(args)[arg] == 'True':

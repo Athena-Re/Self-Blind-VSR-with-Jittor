@@ -64,14 +64,15 @@ class Inference:
             os.makedirs(self.result_path, exist_ok=True)
             print('mkdir: {}'.format(self.result_path))
 
-        # 根据数据集名称和模糊类型创建子目录
-        dataset_folder = f'infer_{self.blur_type}_{self.dataset_name}'
+        # 添加时间戳到目录名
+        time_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+        
+        # 根据数据集名称和模糊类型创建子目录，并添加时间戳
+        dataset_folder = f'infer_{self.blur_type}_{self.dataset_name}_{time_str}'
         self.result_path = os.path.join(self.result_path, dataset_folder)
         if not os.path.exists(self.result_path):
             os.makedirs(self.result_path, exist_ok=True)
             print('mkdir: {}'.format(self.result_path))
-
-        time_str = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
         self.logger = Logger(self.result_path, 'inference_log_{}.txt'.format(time_str))
 
         # 显示GPU状态

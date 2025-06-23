@@ -4,6 +4,8 @@ import numpy as np
 import os
 import datetime
 import skimage.color as sc
+import shutil
+import time
 
 import matplotlib
 
@@ -12,6 +14,55 @@ from matplotlib import pyplot as plt
 
 
 class Logger:
+    def _safe_rename_directory(self, old_path, new_path, max_retries=3):
+        """
+        安全地重命名目录，处理Windows权限问题
+        """
+        # 如果目标路径已存在，直接跳过
+        if os.path.exists(new_path):
+            print(f"目标路径已存在，跳过重命名: {new_path}")
+            return
+            
+        # 尝试直接重命名
+        for attempt in range(max_retries):
+            try:
+                os.rename(old_path, new_path)
+                print(f"✅ 成功重命名: {old_path} -> {new_path}")
+                return
+                
+            except PermissionError as e:
+                print(f"⚠️  重命名尝试 {attempt + 1}/{max_retries} 失败: 权限被拒绝")
+                if attempt < max_retries - 1:
+                    time.sleep(2)  # 等待2秒再重试
+                    
+            except Exception as e:
+                print(f"⚠️  重命名尝试 {attempt + 1}/{max_retries} 失败: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+        
+        # 所有直接重命名尝试都失败，尝试复制+删除方式
+        try:
+            print("🔄 尝试使用复制+删除的方式...")
+            
+            # 确保目标目录不存在
+            if os.path.exists(new_path):
+                shutil.rmtree(new_path)
+                
+            # 复制整个目录树
+            shutil.copytree(old_path, new_path)
+            print(f"✅ 复制完成: {old_path} -> {new_path}")
+            
+            # 删除原目录
+            shutil.rmtree(old_path)
+            print(f"✅ 成功通过复制方式重命名完成")
+            return
+            
+        except Exception as copy_error:
+            print(f"❌ 复制方式也失败: {copy_error}")
+            print(f"💡 将继续使用原目录: {old_path}")
+            print("   这不会影响训练过程，只是不会归档旧的实验结果")
+            return
+
     def __init__(self, args):
         self.args = args
         self.psnr_log = torch.Tensor()
@@ -19,11 +70,23 @@ class Logger:
 
         if args.load == '.':
             if args.save == '.':
-                args.save = datetime.datetime.now().strftime('%Y%m%d_%H:%M')
-            self.dir = args.experiment_dir + args.save
-            if os.path.exists(self.dir) and not args.test_only:
-                new_dir = self.dir + '_archived_' + datetime.datetime.now().strftime('%Y%m%d_%H:%M')
-                os.rename(self.dir, new_dir)
+                args.save = datetime.datetime.now().strftime('%Y%m%d_%H-%M')
+            else:
+                # 为指定的save名称添加时间戳
+                args.save = args.save + '_' + datetime.datetime.now().strftime('%Y%m%d_%H-%M')
+            # 如果目录已存在，直接生成新的唯一目录名
+            original_dir = args.experiment_dir + args.save
+            if os.path.exists(original_dir) and not args.test_only:
+                # 生成唯一的新目录名
+                counter = 1
+                while True:
+                    self.dir = f"{original_dir}_{counter:02d}"
+                    if not os.path.exists(self.dir):
+                        break
+                    counter += 1
+                print(f"🔄 目录已存在，创建新目录: {self.dir}")
+            else:
+                self.dir = original_dir
         else:
             self.dir = args.experiment_dir + args.load
             if not os.path.exists(self.dir):
