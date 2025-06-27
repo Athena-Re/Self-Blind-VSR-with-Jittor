@@ -138,7 +138,7 @@ if __name__ == '__main__':
             while not t.terminate():
                 train_choice = t.train()
                 if train_choice == 'validate_then_save':
-                    t.test()
+                t.test()
                 elif train_choice == 'save_only':
                     print("✅ 模型已保存，跳过验证，继续下一轮训练")
                 elif train_choice == 'skip_save':

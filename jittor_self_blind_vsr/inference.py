@@ -1,4 +1,4 @@
-# python inference.py --input_path ./test_data --model_path ./pretrained_model.pkl
+# python inference.py
 import os
 import sys
 import argparse

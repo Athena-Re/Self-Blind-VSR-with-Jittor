@@ -212,7 +212,7 @@ class Trainer_Flow_Video(Trainer):
         self.kloss_boundaries_log.append(kloss_boundaries_sum / len(self.loader_train))
         self.kloss_sparse_log.append(kloss_sparse_sum / len(self.loader_train))
         self.kloss_center_log.append(kloss_center_sum / len(self.loader_train))
-        
+
         # 训练完成后的保存选项
         print("\n====================================")
         print("训练 Epoch {} 完成！".format(epoch))
